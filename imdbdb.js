@@ -1,7 +1,5 @@
 var http =          require('http');
 var fs =            require('fs');
-var ftp =           require('ftp-get');
-var tarball =       require('tarball-extract')
 var download =      require('get-down');
 var mkdirp =        require('mkdirp');
 var ProgressBar =   require('progress');

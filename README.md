@@ -4,12 +4,27 @@
     _\ \ | | | (_) \ V  V /| |_) | | (_| | | | | | | |  __/ | |_____| | | | | | | (_| | |_) |
     \__/_| |_|\___/ \_/\_/ | .__/|_|\__,_|_| |_|_| |_|\___|_|       |_|_| |_| |_|\__,_|_.__/ 
                            |_|                                                               
-    
+
 ##Prerequisite
 * Install Node.js
 * Install MongoDB
 * Fork the app
-* Install all the depencies from npm (http, path, async, express, socket.io, imdb-api, underscore, querystring, mongodb, monk)
+* Install all the depencies from npm
+
+##Dependencies
+* http
+* path
+* express
+* socket.io
+* underscore
+* querystring
+* mongodb
+* monk
+* fs
+* get-down
+* mkdirp
+* progress
+* readline
 
 ##Installation
 
