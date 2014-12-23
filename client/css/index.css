@@ -133,7 +133,6 @@ p {
 }
 
 .episodes {
-    /*display: none;*/
     color: #222;
     background: rgba(255, 255, 255, .9);
     border-spacing: 2px;
