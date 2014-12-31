@@ -1,3 +1,8 @@
+var init = require('./includes/init.js');
+var config = init.config;
+var log = init.functions;
+log.init(config);
+
 var http = require('http');
 var path = require('path');
 var express = require('express');
@@ -10,18 +15,19 @@ var monk =          require('monk');
 var router = express();
 var server = http.createServer(router);
 var io = socketio.listen(server);
-var db = monk('localhost:27017/imdb');
-var series = db.get('series');
+var db = monk(config.dbuser + ":" + config.dbpass + "@" + config.dburl + ':' + config.dbport + '/' + config.dbname);
+var series = db.get(config.dbtable);
 
 router.use(express.static(path.resolve(__dirname, 'client')));
 
-io.set('log level', 1);
-
 io.on('connection', function(socket){
-    console.log("Client Connected");
+    log.info("Client Connected");
 
     socket.on('getTimes', function(m)
     {
+        log.info('Client request getTimes"');
+        log.debug('Client request info: ');
+        log.debug(m, true);
         var timestamp = [];
         var r = series.find(
         {
@@ -37,62 +43,66 @@ io.on('connection', function(socket){
             function(doc)
             {
                 timestamp.push(doc.date);
-                console.log(doc);
             })
         .error(
             function(err)
             {
-                console.log(err)
+                log.warning('getTimes request failed: ');
+                log.warning(err, true);
                 return false;
             })
         .success(
             function()
             {
+                log.info('getTimes request success, sending sendTimes with info: ');
+                log.info(timestamp, true);
+
                 socket.emit('sendTimes', timestamp);
-                console.log(timestamp);
             })
     })
 
-    socket.on('getSeries', function(msg){
-        console.log("Client request \"getSeries\"");
-        _.each(msg, function(v, k)
-        {
-            var query = "http://omdbapi.com/?";
-            query += querystring.stringify({
-                i: v,
-                p: "full",
-                r: "json"
-            });
+    var se = [];
+    var l = 0;
+    _.each(config.series, function(v, k)
+    {
+        var query = "http://omdbapi.com/?";
+        query += querystring.stringify({
+            i: v,
+            p: "full",
+            r: "json"
+        })
+        log.debug('Requesting query from ' + query);
 
-            http.get(query, onResponse).on('error', onError);
-            var data;
-
-            function onResponse(res)
+        http.get(query, onResponse).on('error', onError);
+        var data;
+        function onResponse(res)
             {
+                log.debug('Got a response');
                 res.on('data', onData).on('error', onError).on('end', onEnd);
             }
             function onData(res)
             {
+                log.debug('Translating the response to utf8');
                 data = res.toString('utf8');
+                log.debug('Data: ');
+                log.debug(data, true);
             }
             function onError(err)
             {
-                console.log(err);
+                log.warning('Got a error on response: ');
+                log.warning(err);
             }
             function onEnd()
             {
                 var str = JSON.parse(data);
                 var ser = {};
 
-                ser.title = str.Title;
-                ser.year = parseInt(str.Year).toString();
-                ser.desc = str.Plot;
-                ser.season = []
-
+                var year = /([0-9]{4}).+/g.exec(str.Year)[1];
+                log.debug('Starting to loop through the ' + str.title + ' serie!');
                 var m = series.find(
                     {
-                        title: ser.title,
-                        year: ser.year
+                        title: str.Title,
+                        year: year
                     },
                     {
                         stream: true
@@ -101,29 +111,31 @@ io.on('connection', function(socket){
                 .each(
                     function(doc)
                     {
-                        if (!ser.season[doc.season]) ser.season[doc.season] = [];
-                        ser.season[doc.season][doc.episode] = doc.desc;
+                        ser = doc;
+                        ser.desc = str.Plot;
                     }
                 )
                 .error(
                     function(err)
                     {
-                        console.log(err);
+                        log.warning('Ran into a problem when looping: ');
+                        log.warning(err, true);
                         return false;
                     }
                 )
                 .success(
                     function()
                     {
+                        log.debug('Done looping, sending sendEpisodes with the information: ');
+                        log.debug(ser, true);
                         socket.emit('sendEpisodes', ser);
                     }
                 );
             }
-        })
-    });
+    })
 });
 
-server.listen(process.env.PORT || 3000, process.env.IP || "0.0.0.0", function(){
+server.listen(config.serverport, config.serverip, function(){
     var addr = server.address();
-    console.log("Showplanner server listening at", addr.address + ":" + addr.port);
+    log.log("Showplanner server listening at " + addr.address + ":" + addr.port);
 });
