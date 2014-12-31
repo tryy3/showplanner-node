@@ -1,0 +1,18 @@
+{
+    "dbuser": "DatabaseUsername",
+    "dbpass": "DatabasePassowrd",
+    "dbname": "DatabaseName",
+    "dbtable": "DatabaseTable",
+    "dbport": "DatabasePort",
+    "dburl": "DatabaseURLOrIP",
+    "serverip": "ServerIP",
+    "serverport": "ServerPort",
+    "folder": "Temp/Folder",
+    "file": "DownloadFileName",
+    "url": "http://ftp.sunet.se/pub/tv+movies/imdb/release-dates.list.gz",
+    "log": 1,
+    "series": [
+        "SeriesID"
+    ],
+    "version" : 0.1
+}
